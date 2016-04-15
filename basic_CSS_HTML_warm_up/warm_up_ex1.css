@@ -1,0 +1,20 @@
+body {
+    font-size: 20px;
+    color: #666666 ; 
+}
+h1 {
+    color: cadetblue;
+}
+#ingredients {
+    color: #483d8b; 
+}
+#directions {
+    color: crimson;
+}
+
+.all_ingredients {
+    font-style: italic;
+}
+.direction_instructions {
+    font-family: sans-serif;
+}
