@@ -1,0 +1,18 @@
+en:
+  welcome: "Welcome to Calculator! Please, enter your name:"
+  say_hi: "Hi!"
+es:
+  welcome: "Bienvenido a la calculadora! Escribe tu nombre porfavor:"
+  say_hi: "¡Hola! Lo siento, esta version esta solo en ingles"
+de:
+  welcome: "Willkommen in der Rechner! Bitte schreiben sie Ihre vorname::"
+  say_hi: "Hallo! Leider, dieser Version es ist nur in Englisch"
+it:
+  welcome: "benvenuto a la calculadora! Per Favore scrivi il tuo nome:"
+  say_hi: "Ciao! Mi dispiace questa versione e solo in Inglese"
+fr:
+  welcome: "bienvenu a le calculateur! s'il vous plaît ecrivez votre nom:"
+  say_hi: "Salut! Desolee cette version c'est solament aux Anglais"
+cat:
+  welcome: "Benvingut a la calculadora! Per Favor escriu el teu nom:"
+  say_hi: "Hola! Perdona, aquesta versio nomes en en Angles"
