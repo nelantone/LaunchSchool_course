@@ -11,17 +11,30 @@ def prompt(message)
 end
 
 def valid_number?(number)
-  number.to_i.to_s == number
+  number.to_f.to_s == number || number.to_i.to_s == number
+end
+
+def operation_to_msg(operator)
+  case operator
+  when 1
+    'an addition'
+  when 2
+    'a substraction'
+  when 3
+    'a multiplication'
+  when 4
+    'a division'
+  end
 end
 
 lang_list = <<-LIST
-1)EN
-2)ES
-3)DE
-4)IT
-5)FR
-6)CAT
-you can choose via the name example: en
+'EN'  = english
+'ES'  = spanish
+'DE'  = german
+'IT'  = italian
+'FR'  = french
+'CAT' = catalan
+you can choose via the upcase letters, example: 'en' or 'EN' for english
 LIST
 
 lang = ''
@@ -45,30 +58,29 @@ loop do
   number1 = nil
   loop do
     prompt(MESSAGES[lang]['first_num'])
-    prompt('please write the first number')
     check_num = Kernel.gets().chomp()
     number1 = check_num.to_f
-    valid_number?(check_num) ? break : prompt('Well...That doesn\'t look as a valid number,try again')
+    valid_number?(check_num) ? break : prompt(MESSAGES[lang]['validate'])
   end
 
-  prompt("That's the first number")
+  prompt(" #{number1} <<")
 
   loop do
     number2 = nil
-    prompt("please write the second number")
+    prompt(MESSAGES[lang]['second_num'])
     check_num = Kernel.gets().chomp()
     number2 = check_num.to_f
-    valid_number?(check_num) ? break : prompt("well.. That doen't look as valid number, try again")
+    valid_number?(check_num) ? break : prompt(MESSAGES[lang]['validate'])
   end
 
-  prompt("That's the second number")
+  prompt(" #{number2} <<")
 
   operations = <<-PARAGRAPH
-  Now, wich operation you want to do:
-  1) add
-  2) substract
-  3) multiply
-  4) divide
+  #{prompt(MESSAGES[lang]['choose_op'])}
+  1) #{number1} + #{number2}
+  2) #{number1} - #{number2}
+  3) #{number1} * #{number2}
+  4) #{number1} / #{number2}
   PARAGRAPH
 
   prompt(operations)
@@ -77,7 +89,7 @@ loop do
 
   loop do
     operator = Kernel.gets().chomp().to_i
-    %w(1 2 3 4).include?(operator.to_s) ? break : prompt('write a number between 1 to 4, please try again')
+    %w(1 2 3 4).include?(operator.to_s) ? break : prompt(MESSAGES[lang]['validate_op'])
   end
 
   case operator
@@ -91,32 +103,25 @@ loop do
     result = number1 / number2
   end
 
-  def operation_to_msg(operator)
-    info = case operator
-           when 1
-             'an addition'
-           when 2
-             'a substraction'
-           when 3
-             'a multiplication'
-           when 4
-             'a division'
-           end
-    info
-  end
-
   prompt("doing #{operation_to_msg(operator)}...")
 
-  puts("This is the result: #{result}")
+  puts("#{MESSAGES[lang]['result']} #{result}")
   puts "-----"
-  prompt("do you want to continue operating? Y/N")
-  continue = gets.chomp.downcase
-  if continue == 'n'
-    prompt("thanks for using the calculator, bye bye!")
+
+  next_or_break = ''
+
+  loop do
+    prompt(MESSAGES[lang]['continue_y_n'])
+    next_or_break = gets.chomp.downcase
+    unless next_or_break == 'y' || next_or_break == 'n'
+      prompt(MESSAGES[lang]['continue_fail'])
+      next
+    end
     break
-  elsif !(continue == 'y')
-    prompt("please write 'y'(as yes) or 'n'(as no)")
-  else
-    next
+  end
+
+  unless next_or_break == 'y'
+    prompt(MESSAGES[lang]['bye'])
+    break
   end
 end

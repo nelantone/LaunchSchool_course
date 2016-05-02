@@ -44,12 +44,12 @@ loop do
   prompt("and your loan duration in months is #{months} (#{years} years * 12) ")
 
   monthly_payment = loan * (monthly_interest * (1 + monthly_interest)**months) / ((1 + monthly_interest)**months - 1)
-  
+
   prompt(" As we have all variables, now we can calculate our Loan duration in months:")
-   
+
   Kernel.puts("monthly payment = #{loan} [#{format('%02.4f', monthly_interest)} (1 + #{format('%02.4f', monthly_interest)}]**#{months} /")
   Kernel.puts("                  [(1 + #{format('%02.4f', monthly_interest)})**#{months} - 1]")
-  
+
   prompt("With a  monthly rate #{format('%02.4f', monthly_interest)}")
   prompt("Your monthly payment in every of the #{months} months is:")
   prompt("#{format('%02.2f', monthly_payment)}")
