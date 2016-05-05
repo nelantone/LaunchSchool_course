@@ -113,11 +113,8 @@ loop do
   loop do
     prompt(MESSAGES[lang]['continue_y_n'])
     next_or_break = gets.chomp.downcase
-    unless next_or_break == 'y' || next_or_break == 'n'
-      prompt(MESSAGES[lang]['continue_fail'])
-      next
-    end
-    break
+    break if next_or_break == 'y' || next_or_break == 'n'
+    prompt(MESSAGES[lang]['continue_fail'])
   end
 
   unless next_or_break == 'y'
