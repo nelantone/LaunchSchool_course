@@ -9,12 +9,14 @@ def check_floats(number)
     prompt('please type a positive number, zero is not a valid number')
     number = Kernel.gets().chomp().to_f
   end
-  @number = number
+  number
 end
 
 def clear_screen
   system('clear') || system('cls')
 end
+
+number = 0.0
 
 loop do
   Kernel.puts('======================================')
@@ -24,18 +26,15 @@ loop do
 
   prompt('Write your Loan amount')
   loan = Kernel.gets().chomp().to_f
-  check_floats(loan)
-  loan = @number
+  loan = check_floats(loan)
 
   prompt('Write your Annual Percentage Rate (APR) for example 5% is 5')
   apr = Kernel.gets().chomp().to_f
-  check_floats(apr)
-  apr = @number
+  apr = check_floats(apr)
 
   prompt('Write your loan duration *years')
   years = Kernel.gets().chomp().to_f
-  check_floats(years)
-  years = @number
+  years = check_floats(years)
 
   monthly_interest = (apr / 100) / 12
   months = years * 12
