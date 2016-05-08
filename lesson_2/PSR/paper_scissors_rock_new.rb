@@ -8,61 +8,46 @@ Kernel.puts('=== Welcome to the Paper Scrissors Rock Game ===')
 Kernel.puts()
 
 VALID_CHOICES = { 'r' => 'rock', 'p' => 'paper', 's' => 'scissors', 'l' => 'lizard', 'k' => 'spock' }.freeze
+WINNING_COMBOS = {
+  'rock' => %w(scissors lizard), 'paper' => %w(rock spock), 'scissors' => %w(paper lizard),
+  'lizard' => %w(paper spock), 'spock' => %w(rock scissors)
+}.freeze
+WINS_NUMBER = 5
 
 def clear_screen
   system('clear') || system('cls')
 end
 
-def win_rock(player1, player2)
-  player1 == 'rock' && player2 == 'scissors' || player1 == 'rock' && player2 == 'lizard'
-end
-
-def win_paper(player1, player2)
-  player1 == 'paper' && player2 == 'rock' || player1 == 'paper' && player2 == 'spock'
-end
-
-def win_scissors(player1, player2)
-  player1 == 'scissors' && player2 == 'paper' || player1 == 'scissors' && player2 == 'lizard'
-end
-
-def win_lizard(player1, player2)
-  player1 == 'lizard' && player2 == 'paper' || player1 == 'lizard' && player2 == 'spock'
-end
-
-def win_spock(player1, player2)
-  player1 == 'spock' && player2 == 'rock' || player1 == 'spock' && player2 == 'scissors'
-end
-
 def win?(player1, player2)
-  win_rock(player1, player2) || win_paper(player1, player2) || win_scissors(player1, player2) || win_lizard(player1, player2) || win_spock(player1, player2)
+  WINNING_COMBOS.key?(player1) && WINNING_COMBOS[player1].include?(player2)
 end
 
 def prompt(message)
   Kernel.puts("=> #{message}")
 end
 
-def valid_choice(choice, computer)
+def validate_user_choice(user, computer)
   loop do
-    choice = Kernel.gets().chomp()
-    if VALID_CHOICES.values.include?(choice)
-      prompt("User choose: #{choice}, computer: #{computer}")
+    user = Kernel.gets().chomp().downcase
+    if VALID_CHOICES.values.include?(user)
+      prompt("User choose: #{user}, computer: #{computer}")
       break
-    elsif VALID_CHOICES.keys.include?(choice)
-      prompt("User choose: #{VALID_CHOICES[choice]}, computer: #{computer}")
-      choice = VALID_CHOICES[choice]
+    elsif VALID_CHOICES.keys.include?(user)
+      prompt("User choose: #{VALID_CHOICES[user]}, computer: #{computer}")
+      user = VALID_CHOICES[user]
       break
     else
       prompt('please choose a valid answer')
     end
   end
-  choice
+  user
 end
 
-def play(choice, computer)
-  if win?(choice, computer)
+def get_game_result(user, computer)
+  if win?(user, computer)
     prompt('User win! <=')
     @user_wins += 1
-  elsif win?(computer, choice)
+  elsif win?(computer, user)
     prompt('Computer win! <=')
     @computer_wins += 1
   else
@@ -71,7 +56,7 @@ def play(choice, computer)
   @game_track += 1
 end
 
-def play_again_validator(continue_or_not)
+def validate_play_again(continue_or_not)
   prompt('Continue playing? y/yes or n/not')
   loop do
     continue_or_not = Kernel.gets().chomp().downcase()
@@ -82,7 +67,7 @@ def play_again_validator(continue_or_not)
 end
 
 def restart_final_game
-  if @user_wins == 5 || @computer_wins == 5
+  if @user_wins == WINS_NUMBER || @computer_wins == WINS_NUMBER
     @user_wins = 0
     @computer_wins = 0
     @game_track = 0
@@ -90,18 +75,18 @@ def restart_final_game
 end
 
 def game_winner
-  if @user_wins == 5
+  if @user_wins == WINS_NUMBER
     prompt("Congratulations you are the final winner!")
-  elsif @computer_wins == 5
+  elsif @computer_wins == WINS_NUMBER
     prompt("Ho soryy! The computer is the final winner!")
   else
-    prompt("The final winner needs to win 5 times!")
+    prompt("The final winner needs to win #{WINS_NUMBER} times!")
   end
   restart_final_game
 end
 
 def counter_text
-  unless @user_wins == 5 || @computer_wins == 5
+  unless @user_wins == WINS_NUMBER || @computer_wins == WINS_NUMBER
     if @user_wins > @computer_wins
       prompt("You are wining so far!")
     elsif @user_wins < @computer_wins
@@ -122,13 +107,13 @@ loop do
   prompt('Choose one of these options:')
   VALID_CHOICES.each { |k, v| Kernel.puts("#{k} or #{v}") }
   computer = VALID_CHOICES.values.sample
-  choice = valid_choice(choice, computer)
+  user = validate_user_choice(user, computer)
   puts
-  play(choice, computer)
+  get_game_result(user, computer)
   puts
   counter
   puts
-  continue_or_not = play_again_validator(continue_or_not)
+  continue_or_not = validate_play_again(continue_or_not)
   if continue_or_not == 'n'
     prompt('OK, Bye bye!')
     break
