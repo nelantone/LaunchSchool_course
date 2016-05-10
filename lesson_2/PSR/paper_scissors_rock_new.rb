@@ -7,11 +7,22 @@ require 'pry'
 Kernel.puts('=== Welcome to the Paper Scrissors Rock Game ===')
 Kernel.puts()
 
-VALID_CHOICES = { 'r' => 'rock', 'p' => 'paper', 's' => 'scissors', 'l' => 'lizard', 'k' => 'spock' }.freeze
-WINNING_COMBOS = {
-  'rock' => %w(scissors lizard), 'paper' => %w(rock spock), 'scissors' => %w(paper lizard),
-  'lizard' => %w(paper spock), 'spock' => %w(rock scissors)
+VALID_CHOICES = { 
+  'r' => 'rock',
+  'p' => 'paper',
+  's' => 'scissors',
+  'l' => 'lizard', 
+  'k' => 'spock' 
 }.freeze
+
+WINNING_COMBOS = {
+  'rock'     => %w(scissors lizard),
+  'paper'    => %w(rock spock),
+  'scissors' => %w(paper lizard),
+  'lizard'   => %w(paper spock),
+  'spock'    => %w(rock scissors)
+}.freeze
+
 WINS_NUMBER = 5
 
 def clear_screen
@@ -98,7 +109,8 @@ def counter_text
 end
 
 def counter
-  prompt("In #{@game_track} games: You won #{@user_wins} times and computer #{@computer_wins}.")
+  prompt("In #{@game_track} games: You won #{@user_wins} 
+    times and computer #{@computer_wins}.")
   counter_text
   game_winner
 end
