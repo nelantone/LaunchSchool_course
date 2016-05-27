@@ -13,13 +13,17 @@ def prompt(text)
   puts "=> #{text}"
 end
 
+# rubocop:disable Metrics/LineLength
 def joinor(ary, delimiter = ', ', word_nexus = 'or')
   "#{ary[0...-1].join(delimiter)} #{word_nexus unless ary.size == 1} #{ary.last}"
 end
+# rubocop:enable Metrics/LineLength
 
 # rubocop:disable Metrics/AbcSize
 def display_board(brd)
-  puts " you are #{PLAYER_MARKER}. Computer is #{COMPUTER_MARKER}"
+  unless brd.values == (1..9).to_a
+    puts " you are #{PLAYER_MARKER}. Computer is #{COMPUTER_MARKER}"
+  end
   puts ""
   puts "     |     |"
   puts "  #{brd[1]}  |  #{brd[2]}  |  #{brd[3]}"
@@ -57,8 +61,52 @@ def pick_player_piece!(brd)
   brd[square] = PLAYER_MARKER
 end
 
+def someone_close_to_win(brd)
+  WINNING_LINES.each do |line|
+    if brd.values_at(*line).count(PLAYER_MARKER) == 2
+      # *line = line[0], line[1], line[2] ('*' splat operator)
+      return 'player'
+    elsif brd.values_at(*line).count(COMPUTER_MARKER) == 2
+      return 'computer'
+    end
+  end
+end
+# Refactor
+
+def defending_computer(brd)
+  WINNING_LINES.each do |line|
+    check_choices = brd.values_at(*line)
+    if check_choices.count(PLAYER_MARKER) == 2
+      Hash[line.zip(check_choices)].select do |k, v|
+        return k if v == " "
+      end
+    end
+  end
+  nil
+end
+# Refactor
+
+def computer_attack(brd)
+  WINNING_LINES.each do |line|
+    check_choices = brd.values_at(*line)
+    if check_choices.count(COMPUTER_MARKER) == 2
+      Hash[line.zip(check_choices)].select do |k, v| 
+        return k if v == " " 
+      end
+    end
+  end
+  nil
+end
+# Refactor
+
+
 def pick_computer_piece!(brd)
-  square = empty_squares(brd).sample
+  square = if someone_close_to_win(brd) == 'computer'
+             computer_attack(brd)
+           elsif someone_close_to_win(brd) == 'player'
+             defending_computer(brd)
+           end
+  square ||= empty_squares(brd).sample
   brd[square] = COMPUTER_MARKER
 end
 
@@ -84,9 +132,9 @@ end
 
 def detect_winner(brd)
   WINNING_LINES.each do |line|
-    if brd.values_at(line[0], line[1], line[2]).count(PLAYER_MARKER) == 3
+    if brd.values_at(*line).count(PLAYER_MARKER) == 3
       return 'player'
-    elsif brd.values_at(line[0], line[1], line[2]).count(COMPUTER_MARKER) == 3
+    elsif brd.values_at(*line).count(COMPUTER_MARKER) == 3
       return 'computer'
     end
   end
@@ -159,6 +207,7 @@ loop do
   end
 
   if someone_won?(board)
+    display_board(board)
     prompt "#{detect_winner(board)} won!"
   else
     prompt "It's a tie"
@@ -166,8 +215,8 @@ loop do
   winner = detect_winner(board)
   get_win_times(winner)
   game_winner
-  puts display_board(board)
-  unless game_winner.nil?
+  display_board(board)
+  unless game_winner.empty? || game_winner.nil?
     break unless continue_playing.downcase.start_with?('y')
     reset_game
   end
