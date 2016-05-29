@@ -19,7 +19,7 @@ def joinor(ary, delimiter = ', ', word_nexus = 'or')
 end
 # rubocop:enable Metrics/LineLength
 
-# rubocop:disable Metrics/AbcSize
+# rubocop:disable Metrics/AbcSize, Metrics/MethodLength
 def display_board(brd)
   unless brd.values == (1..9).to_a
     puts " you are #{PLAYER_MARKER}. Computer is #{COMPUTER_MARKER}"
@@ -38,7 +38,7 @@ def display_board(brd)
   puts "     |     |"
   puts ""
 end
-# rubocop:enable Metrics/AbcSize
+# rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
 def initialize_board
   new_board ||= {}
@@ -61,52 +61,54 @@ def pick_player_piece!(brd)
   brd[square] = PLAYER_MARKER
 end
 
-def someone_close_to_win(brd)
+def computer_close_to_win(brd)
   WINNING_LINES.each do |line|
-    if brd.values_at(*line).count(PLAYER_MARKER) == 2
-      # *line = line[0], line[1], line[2] ('*' splat operator)
-      return 'player'
-    elsif brd.values_at(*line).count(COMPUTER_MARKER) == 2
+    line_eval = brd.values_at(*line)
+    if line_eval.count(COMPUTER_MARKER) == 2 && line_eval.include?(" ")
       return 'computer'
     end
   end
 end
-# Refactor
+
+def player_close_to_win(brd)
+  WINNING_LINES.each do |line|
+    line_eval = brd.values_at(*line)
+    if line_eval.count(PLAYER_MARKER) == 2 && line_eval.include?(" ")
+      # *line = line[0], line[1], line[2] ('*' splat operator)
+      return 'player'
+    end
+  end
+end
 
 def defending_computer(brd)
   WINNING_LINES.each do |line|
-    check_choices = brd.values_at(*line)
-    if check_choices.count(PLAYER_MARKER) == 2
-      Hash[line.zip(check_choices)].select do |k, v|
-        return k if v == " "
-      end
+    line_eval = brd.values_at(*line)
+    if line_eval.count(PLAYER_MARKER) == 2 && line_eval.include?(" ")
+      Hash[line.zip(line_eval)].select { |k, v| return k if v == " " }
     end
+    nil
   end
-  nil
 end
-# Refactor
 
 def computer_attack(brd)
   WINNING_LINES.each do |line|
-    check_choices = brd.values_at(*line)
-    if check_choices.count(COMPUTER_MARKER) == 2
-      Hash[line.zip(check_choices)].select do |k, v| 
-        return k if v == " " 
-      end
+    line_eval = brd.values_at(*line)
+    if line_eval.count(COMPUTER_MARKER) == 2 && line_eval.include?(" ")
+      Hash[line.zip(line_eval)].select { |k, v| return k if v == " " }
     end
+    nil
   end
-  nil
 end
-# Refactor
-
 
 def pick_computer_piece!(brd)
-  square = if someone_close_to_win(brd) == 'computer'
+  square = if computer_close_to_win(brd) == 'computer'
              computer_attack(brd)
-           elsif someone_close_to_win(brd) == 'player'
+           elsif player_close_to_win(brd) == 'player'
              defending_computer(brd)
            end
-  square ||= empty_squares(brd).sample
+  if square.nil?
+    brd[5] == " " ? square = 5 : square ||= empty_squares(brd).sample
+  end
   brd[square] = COMPUTER_MARKER
 end
 
@@ -145,8 +147,7 @@ def clear_screen
   system('clear') || system('cls')
 end
 
-def detect_final_winner(final_winner)
-  final_winner = ''
+def detect_final_winner(final_winner = '')
   @win_times.take(2).select { |k, v| final_winner = k if v >= 5 }
   final_winner
 end
@@ -164,7 +165,6 @@ def game_winner
     prompt "#{final_winner.upcase} IS THE FINAL WINNER!"
     puts '======='
   end
-  final_winner
 end
 
 def winning_game
@@ -210,13 +210,15 @@ loop do
     display_board(board)
     prompt "#{detect_winner(board)} won!"
   else
+    display_board(board)
     prompt "It's a tie"
   end
   winner = detect_winner(board)
   get_win_times(winner)
-  game_winner
   display_board(board)
-  unless game_winner.empty? || game_winner.nil?
+  game_winner
+  final_winner = detect_final_winner(final_winner)
+  unless final_winner.nil? || final_winner.empty?
     break unless continue_playing.downcase.start_with?('y')
     reset_game
   end
