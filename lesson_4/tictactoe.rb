@@ -3,6 +3,7 @@ require 'pry'
 INTIAL_MARKER = ' '.freeze
 PLAYER_MARKER = 'X'.freeze
 COMPUTER_MARKER = 'O'.freeze
+PLAYERS = { 'player' => PLAYER_MARKER, 'computer' => COMPUTER_MARKER }.freeze
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # cols
                 [[1, 5, 9], [3, 5, 7]] # diagonals
@@ -50,6 +51,22 @@ def empty_squares(brd)
   brd.keys.select { |num| brd[num] == INTIAL_MARKER }
 end
 
+def choose_first_random_player
+  PLAYERS.values.sample
+end
+
+def place_piece!(brd, current_player)
+  if current_player == PLAYER_MARKER
+    pick_player_piece!(brd)
+  else
+    pick_computer_piece!(brd)
+  end
+end
+
+def alternate_player(current_player)
+  current_player == PLAYER_MARKER ? COMPUTER_MARKER : PLAYER_MARKER
+end
+
 def pick_player_piece!(brd)
   square = ''
   loop do
@@ -61,53 +78,51 @@ def pick_player_piece!(brd)
   brd[square] = PLAYER_MARKER
 end
 
-def computer_close_to_win(brd)
+def current_player_close_to_win(brd)
   WINNING_LINES.each do |line|
     line_eval = brd.values_at(*line)
+    # *line = line[0], line[1], line[2] ('*' splat operator)
     if line_eval.count(COMPUTER_MARKER) == 2 && line_eval.include?(" ")
-      return 'computer'
+      return PLAYERS.key(COMPUTER_MARKER)
+    elsif line_eval.count(PLAYER_MARKER) == 2 && line_eval.include?(" ")
+      return PLAYERS.key(PLAYER_MARKER)
     end
   end
 end
 
-def player_close_to_win(brd)
+def computer_react(brd)
   WINNING_LINES.each do |line|
     line_eval = brd.values_at(*line)
-    if line_eval.count(PLAYER_MARKER) == 2 && line_eval.include?(" ")
-      # *line = line[0], line[1], line[2] ('*' splat operator)
-      return 'player'
+    PLAYERS.each_value do |player|
+      if line_eval.count(player) == 2 && line_eval.include?(" ")
+        Hash[line.zip(line_eval)].select { |k, v| return k if v == " " }
+      end
+      nil
     end
   end
 end
 
-def defending_computer(brd)
-  WINNING_LINES.each do |line|
-    line_eval = brd.values_at(*line)
-    if line_eval.count(PLAYER_MARKER) == 2 && line_eval.include?(" ")
-      Hash[line.zip(line_eval)].select { |k, v| return k if v == " " }
-    end
-    nil
-  end
-end
-
-def computer_attack(brd)
-  WINNING_LINES.each do |line|
-    line_eval = brd.values_at(*line)
-    if line_eval.count(COMPUTER_MARKER) == 2 && line_eval.include?(" ")
-      Hash[line.zip(line_eval)].select { |k, v| return k if v == " " }
-    end
-    nil
+def starts_computer?(brd)
+  if brd.values.all? { |items| items == ' ' }
+    prompt "press enter to continue"
+    gets.chomp
   end
 end
 
 def pick_computer_piece!(brd)
-  square = if computer_close_to_win(brd) == 'computer'
-             computer_attack(brd)
-           elsif player_close_to_win(brd) == 'player'
-             defending_computer(brd)
-           end
-  if square.nil?
-    brd[5] == " " ? square = 5 : square ||= empty_squares(brd).sample
+  starts_computer?(brd)
+
+  someone_close_to_win = current_player_close_to_win(brd)
+  square = 0
+  PLAYERS.each_key do |some_player|
+    # first computer attack
+    if someone_close_to_win == some_player
+      square = computer_react(brd)
+    end
+  end
+
+  if square.nil? || square.zero?
+    square = brd[5] == " " ? 5 : empty_squares(brd).sample
   end
   brd[square] = COMPUTER_MARKER
 end
@@ -118,7 +133,7 @@ def localization_square_board
   display_board(localize_squares)
 end
 
-def start
+def show_position_num
   localization_square_board
 end
 
@@ -175,12 +190,12 @@ def winning_game
   gets.chomp
 end
 
-def get_win_times(winner)
+def show_win_times
   @games_played += 1
   @win_times ||= { 'player' => 0, 'computer' => 0, 'tie' => 0 }
-  if winner == 'player'
+  if @winner == 'player'
     @win_times['player'] += 1
-  elsif winner == 'computer'
+  elsif @winner == 'computer'
     @win_times['computer'] += 1
   else
     @win_times['tie'] += 1
@@ -195,15 +210,21 @@ end
 
 loop do
   board = initialize_board
-  start
+  show_position_num
+  if @winner.nil? || board_full?(board)
+    current_player = choose_first_random_player
+  else
+    current_player = @winner
+    current_player = alternate_player(current_player)
+    @winner = ''
+  end
   loop do
     display_board(board)
-    pick_player_piece!(board)
+    place_piece!(board, current_player)
+    current_player = alternate_player(current_player)
     break if someone_won?(board) || board_full?(board)
     clear_screen
-    pick_computer_piece!(board)
     puts board
-    break if someone_won?(board) || board_full?(board)
   end
 
   if someone_won?(board)
@@ -213,8 +234,8 @@ loop do
     display_board(board)
     prompt "It's a tie"
   end
-  winner = detect_winner(board)
-  get_win_times(winner)
+  @winner = detect_winner(board)
+  show_win_times
   display_board(board)
   game_winner
   final_winner = detect_final_winner(final_winner)
